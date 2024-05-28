@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Left Sidebar Navbar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat&display=swap">
+<style>
+    /* Basic styling for the page */
+    body, html {
+        height: 100%;
+        margin: 0;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    /* Container styles */
+    .container {
+        display: flex;
+        height: 100%;
+    }
+
+    /* Sidebar/navbar styles */
+    .sidebar {
+        width: 22%;
+        background: linear-gradient(#f89d35 25%, #fff 25%);
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        padding: 10px 20px;
+    }
+
+    /* Content area styles */
+    .content {
+        flex-grow: 1;
+        padding: 20px;
+        background-color: #fff;
+        color: #333;
+        text-align: center;
+    }
+
+    /* Styling for the "Speaking" text */
+    .speaking {
+        color: #fff;
+        font-size: 20px;
+        margin: 0;
+    }
+
+    /* Styling for the "Back to course page" text */
+    .back-to-course {
+        font-size: 10px;
+        color: #fff;
+        margin-bottom: 10%;
+        font-style: italic;
+        text-decoration: none; /* Added to remove underline */
+    }
+
+    /* Styling for the hr */
+    hr {
+        margin-top: 15px;
+        border: none;
+        border-top: 2px solid #ccc;
+        width: 100%;
+    }
+
+    /* Styling for the recording button */
+    #record {
+        padding: 10px 20px;
+        background-color: #007bff; /* Blue color */
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar/navbar -->
+        <div class="sidebar">
+            <a href="https://example.com/course" class="back-to-course">&lt;-- back to course page</a>
+            <p class="speaking">Speaking</p>
+            <hr style="color: gray;">
+        </div>
+        
+        <!-- Main content area -->
+        <div class="content">
+            <h1 style="font-size: 12pt;">Section Name</h1>
+            <h2 style="font-size: 14pt; font-weight: bold;">Exercise Name Title</h2>
+            <br>
+            <p style="font-size: 10pt;">Play the video and then record your answer to the prompt</p>
+            <br> <!-- Line break for spacing -->
+            <img src="guy.jpg" height="50%"><br><br>
+            <div class="display"></div>
+            <div class="controllers"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript code -->
+    <script>
+        const display = document.querySelector('.display');
+        const controllerWrapper = document.querySelector('.controllers');
+
+        const State = ['Initial', 'Record', 'Download'];
+        let stateIndex = 0;
+        let mediaRecorder, chunks = [], audioURL = '';
+
+        // mediaRecorder setup for audio
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            console.log('mediaDevices supported..');
+
+            navigator.mediaDevices.getUserMedia({
+                audio: true
+            }).then(stream => {
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (e) => {
+                    chunks.push(e.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(chunks, { 'type': 'audio/ogg; codecs=opus' });
+                    chunks = [];
+                    audioURL = window.URL.createObjectURL(blob);
+                    document.querySelector('audio').src = audioURL;
+
+                };
+            }).catch(error => {
+                console.log('Following error has occurred : ', error);
+            });
+        } else {
+            stateIndex = '';
+            application(stateIndex);
+        }
+
+        const clearDisplay = () => {
+            display.textContent = '';
+        };
+
+        const clearControls = () => {
+            controllerWrapper.textContent = '';
+        };
+
+        const record = () => {
+            stateIndex = 1;
+            mediaRecorder.start();
+            application(stateIndex);
+        };
+
+        const stopRecording = () => {
+            stateIndex = 2;
+            mediaRecorder.stop();
+            application(stateIndex);
+        };
+
+        const downloadAudio = () => {
+            const downloadLink = document.createElement('a');
+            downloadLink.href = audioURL;
+            downloadLink.setAttribute('download', 'audio');
+            downloadLink.click();
+        };
+
+        const addButton = (id, funString, text) => {
+            const btn = document.createElement('button');
+            btn.id = id;
+            btn.setAttribute('onclick', funString);
+            btn.textContent = text;
+            controllerWrapper.append(btn);
+        };
+
+        const addMessage = (text) => {
+            const msg = document.createElement('p');
+            msg.textContent = text;
+            display.append(msg);
+        };
+
+        const addAudio = () => {
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = audioURL;
+            display.append(audio);
+        };
+
+        const application = (index) => {
+            switch (State[index]) {
+                case 'Initial':
+                    clearDisplay();
+                    clearControls();
+
+                    addButton('record', 'record()', 'Start Recording');
+                    break;
+
+                case 'Record':
+                    clearDisplay();
+                    clearControls();
+
+                    addMessage('Recording...');
+                    addButton('stop', 'stopRecording()', 'Stop Recording');
+                    break;55555555555555555555555555555555===\
+
+                case 'Download':
+                    clearControls();
+                    clearDisplay();
+
+                    addAudio();
+                    addButton('record', 'record()', 'Record Again');
+                    break;
+
+                default:
+                    clearControls();
+                    clearDisplay();
+
+                    addMessage('Your browser does not support mediaDevices');
+                    break;
+            }
+        };
+
+        application(stateIndex);
+    </script>
+</body>
+</html>
